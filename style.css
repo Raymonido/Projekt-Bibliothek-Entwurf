@@ -1,0 +1,12 @@
+:root {
+    --primary: #add8e6;
+}
+
+.navbar {
+    background: linear-gradient(to right, #add8e6, #ffffff);
+}
+
+html, body {
+    width: 100%;
+    height: 90%;
+}
