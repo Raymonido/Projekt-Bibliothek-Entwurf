@@ -49,6 +49,7 @@ function renderAdresses(address) {
             document.getElementById('editCustomerAddressLabel').innerHTML = address + " Bearbeiten";
 
             document.getElementById('editAddressForm').setAttribute('data-id', id);
+            document.getElementById('editAddressForm').setAttribute('data-address', address);
             document.getElementById('deleteButton').setAttribute('data-id', id);
             document.getElementById('deleteButton').setAttribute('data-address', address)
         });
@@ -105,8 +106,26 @@ async function searchAddress(data) {
         return renderAdresses(cities);
     }
 
-    alert("Keine Adresse, ZIP oder Stadt gefunden");
+    showBootstrapAlert("Keine Suchergebnisse gefunden")
 }
+
+function showBootstrapAlert(message, type = 'warning') {
+    const container = document.getElementById('alertContainer');
+    container.innerHTML = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+
+    setTimeout(() => {
+        const alert = container.querySelector('.alert');
+        if (alert) {
+            bootstrap.Alert.getOrCreateInstance(alert).close();
+        }
+    }, 3000);
+}
+
 document.getElementById('editForm').addEventListener('submit', async function (e) {
     e.preventDefault();
 
@@ -128,7 +147,7 @@ document.getElementById('editForm').addEventListener('submit', async function (e
         return;
     }
 
-    let response = await createAddress(data)
+    await createAddress(data)
 
     const modal = bootstrap.Modal.getInstance(document.getElementById('editModal'));
     modal.hide();
@@ -152,6 +171,7 @@ document.getElementById('editAddressForm').addEventListener('submit', async func
 
     const form = e.target;
     const id = form.getAttribute('data-id');
+    const address = form.getAttribute('data-address');
     console.log(id)
     const formData = new FormData(form);
     const data = {};
@@ -162,7 +182,7 @@ document.getElementById('editAddressForm').addEventListener('submit', async func
     }
     console.log(data)
 
-    let response = updateAddress(data, id);
+    await updateAddress(data, id);
 
     const modal = bootstrap.Modal.getInstance(document.getElementById('editAddressModal'));
     modal.hide();
@@ -171,11 +191,11 @@ document.getElementById('editAddressForm').addEventListener('submit', async func
     const toastBody = document.getElementById('toastBody')
     const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toast);
 
-    toastBody.innerHTML = "Adresse (" + data.address + ") wurde erfolgreich geändert!"
-
-    toastBootstrap.show();
+    toastBody.innerHTML = "Adresse (" + address + ") wurde erfolgreich geändert!"
 
     await getAllAdresses();
+
+    toastBootstrap.show();
 });
 
 document.getElementById('deleteButton').addEventListener('click', async function () {
@@ -183,7 +203,6 @@ document.getElementById('deleteButton').addEventListener('click', async function
     let address = document.getElementById('deleteButton').getAttribute('data-address')
 
     await deleteAddress(id);
-
 
     const modal = bootstrap.Modal.getInstance(document.getElementById('editAddressModal'));
     modal.hide();
@@ -205,7 +224,10 @@ document.getElementById('searchBar').addEventListener('submit', function (e) {
 
     let input = document.getElementById('search').value.trim();
 
-    searchAddress(input);
+    if (input.length > 0) {
+        searchAddress(input);
+    } else getAllAdresses();
+
 
 })
 
